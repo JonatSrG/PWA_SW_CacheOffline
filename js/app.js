@@ -4,7 +4,7 @@ if ( navigator.serviceWorker ) {
     navigator.serviceWorker.register('/sw.js');
 }
 
-if ( window.caches ) {
+/* if ( window.caches ) {
 
     caches.open('prueba-1');
 
@@ -29,15 +29,15 @@ if ( window.caches ) {
         /* cache.match('/index.html').then( resp => {
 
             resp.text().then( console.log );
-        }); */
+        }); 
 
         
     });
 
-    /* caches.has('prueba-2').then( existe => console.log(existe));
+     caches.has('prueba-2').then( existe => console.log(existe));
 
-    caches.delete('prueba-1').then( console.log ); */
+    caches.delete('prueba-1').then( console.log ); 
     caches.keys().then( keys => {
         console.log(keys);
     });
-}
+} */
