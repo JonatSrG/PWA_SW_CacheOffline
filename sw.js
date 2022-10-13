@@ -76,7 +76,7 @@ self.addEventListener('fetch', e => {
 
     //3. Network with cache fallback
 
-    const respuestaNetwork = fetch( e.request ).then( res => {
+    /* const respuestaNetwork = fetch( e.request ).then( res => {
 
         if (!res) return caches.match(e.request);
 
@@ -92,5 +92,26 @@ self.addEventListener('fetch', e => {
         return caches.match( e.request);
     });
 
-    e.respondWith(respuestaNetwork);
+    e.respondWith(respuestaNetwork); */
+
+    //4. Cache With Network Update Cuadno el rendimeindo es critico
+    //intereasa las actualizaciones y estar un oaso atras 
+
+    if( e.request.url.includes('bootstrap')) {
+        return e.respondWith( caches.match(e.request));
+    }
+
+    const respuestaCache = caches.open(CACHE_STATIC_NAME ).then( cache => {
+
+        fetch( e.request).then( newResp => {
+
+            cache.put( e.request, newResp);
+
+            return cache.match( e.request );
+        });
+
+    });
+
+    e.respondWith( respuestaCache );
+
 });
