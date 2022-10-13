@@ -74,10 +74,13 @@ self.addEventListener('fetch', e => {
 
     e.respondWith( respuesta ); */
 
-    //network with cache fallback
+    //3. Network with cache fallback
 
     const respuestaNetwork = fetch( e.request ).then( res => {
-        console.log('Fetch', res);
+
+        if (!res) return caches.match(e.request);
+
+        //console.log('Fetch', res);
 
         caches.open( CACHE_DYNAMIC_NAME ).then( cache => {
 
