@@ -7,14 +7,14 @@ const CACHE_DYNAMIC_NAME = 'dynamic-v1';
 const CACHE_INMUTABLE_NAME = 'inmutable-v1';
 const CACHE_DYNAMIC_LIMIT = 50;
 
-function limpiarCache( cacheName, numeroItems ) {
+function limpiarCache(cacheName, numeroItems) {
 
-    caches.open( cacheName ).then( cache => {
+    caches.open(cacheName).then(cache => {
 
-        return cache.keys().then( keys => {
+        return cache.keys().then(keys => {
             //console.log(keys);
-            if ( keys.length > numeroItems) {
-                cache.delete( keys[0] ).then( limpiarCache(cacheName, numeroItems));
+            if (keys.length > numeroItems) {
+                cache.delete(keys[0]).then(limpiarCache(cacheName, numeroItems));
             }
         });
     });
@@ -22,7 +22,7 @@ function limpiarCache( cacheName, numeroItems ) {
 
 self.addEventListener('install', e => {
 
-    const cacheProm = caches.open( CACHE_STATIC_NAME ).then( cache => {
+    const cacheProm = caches.open(CACHE_STATIC_NAME).then(cache => {
 
         return cache.addAll([
             '/',
@@ -30,19 +30,20 @@ self.addEventListener('install', e => {
             '/css/style.css',
             '/img/main.jpg',
             //'https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css',
-            '/js/app.js'
+            '/js/app.js',
+            '/img/no-img.jpg'
         ]);
     });
 
-    const cacheInmutable =  caches.open( CACHE_INMUTABLE_NAME )
-    .then( cache => {
+    const cacheInmutable = caches.open(CACHE_INMUTABLE_NAME)
+        .then(cache => {
 
-        return cache.addAll([
-            'https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css'
-        ])
-    });
+            return cache.addAll([
+                'https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css'
+            ])
+        });
 
-    e.waitUntil( Promise.all([cacheProm, cacheInmutable]) );
+    e.waitUntil(Promise.all([cacheProm, cacheInmutable]));
 
 });
 
@@ -97,7 +98,7 @@ self.addEventListener('fetch', e => {
     //4. Cache With Network Update Cuadno el rendimeindo es critico
     //intereasa las actualizaciones y estar un oaso atras 
 
-    if( e.request.url.includes('bootstrap')) {
+    /* if( e.request.url.includes('bootstrap')) {
         return e.respondWith( caches.match(e.request));
     }
 
@@ -112,6 +113,46 @@ self.addEventListener('fetch', e => {
 
     });
 
-    e.respondWith( respuestaCache );
+    e.respondWith( respuestaCache ); */
+
+    //5. Cache & Network Race
+    const respuestaRace = new Promise((resolve, reject) => {
+
+        let rechazada = false;
+
+        const fallounavez = () => {
+            if (rechazada) {
+
+                if( /\.(png!jpg)$/i.test(e.request.url)){
+
+                    resolve( caches.match('/img/no-image.jpg'));
+                }else {
+                    reject('No se encontro respuesta');
+                }
+
+            } else {
+                rechazada = true;
+            }
+        }
+
+        fetch(e.request).then(res => {
+
+            if (res.ok) {
+                resolve(res);
+            } else {
+                //nada
+                fallounavez();
+            }
+
+        }).catch(fallounavez);
+
+        caches.match(e.request).then(res => {
+            res ? resolve(res) : fallounavez();
+        })
+
+    });
+
+    e.respondWith( respuestaRace);
+
 
 });
