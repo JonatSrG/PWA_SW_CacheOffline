@@ -1,6 +1,6 @@
-//continuar con el video 67 de la secc 6
 
-const CACHE_STATIC_NAME = 'static-v2';
+
+const CACHE_STATIC_NAME = 'static-v5';
 const CACHE_DYNAMIC_NAME = 'dynamic-v1';
 
 const CACHE_INMUTABLE_NAME = 'inmutable-v1';
@@ -46,6 +46,25 @@ self.addEventListener('install', e => {
     e.waitUntil(Promise.all([cacheProm, cacheInmutable]));
 
 });
+
+
+self.addEventListener('activate', e => {
+
+    const respuestaDelete = caches.keys().then( keys => {
+
+        keys.forEach( key => {
+
+            if( key !== CACHE_STATIC_NAME && key.includes('static')) {
+
+                return caches.delete(key);
+            }
+
+        });
+    });
+
+    e.waitUntil(respuestaDelete);
+});
+
 
 self.addEventListener('fetch', e => {
 
