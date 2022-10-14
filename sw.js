@@ -1,3 +1,5 @@
+//continuar con el video 67 de la secc 6
+
 const CACHE_STATIC_NAME = 'static-v1';
 const CACHE_DYNAMIC_NAME = 'dynamic-v1';
 
@@ -28,7 +30,8 @@ self.addEventListener('install', e => {
             '/img/main.jpg',
             //'https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css',
             '/js/app.js',
-            '/img/no-img.jpg'
+            '/img/no-img.jpg',
+            '/pages/offline.html'
         ]);
     });
 
@@ -42,4 +45,28 @@ self.addEventListener('install', e => {
 
     e.waitUntil(Promise.all([cacheProm, cacheInmutable]));
 
+});
+
+self.addEventListener('fetch', e => {
+
+    const respuesta = caches.match(e.request).then(res => {
+
+        if (res) return res;
+
+        //No existe el archivo y tengo que ir a la web
+        console.log('No existe', e.request.url);
+
+        return fetch(e.request).then(newResp => {
+
+            caches.open(CACHE_DYNAMIC_NAME).then(cache => {
+                cache.put(e.request, newResp);
+
+                limpiarCache(CACHE_DYNAMIC_NAME, CACHE_DYNAMIC_LIMIT);
+            });
+
+            return newResp.clone();
+        });
+    });
+
+    e.respondWith(respuesta);
 });
